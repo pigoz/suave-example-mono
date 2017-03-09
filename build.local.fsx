@@ -15,7 +15,7 @@ open System.IO
 open Suave
 open Suave.Http
 open Suave.Web
-open Suave.Types
+open Suave.Logging
 open Microsoft.FSharp.Compiler.Interactive.Shell
 
 // --------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ open Microsoft.FSharp.Compiler.Interactive.Shell
 let sbOut = new Text.StringBuilder()
 let sbErr = new Text.StringBuilder()
 
-let fsiSession = 
+let fsiSession =
   let inStream = new StringReader("")
   let outStream = new StringWriter(sbOut)
   let errStream = new StringWriter(sbErr)
@@ -58,17 +58,11 @@ let reloadScript () =
 
 let currentApp = ref (fun _ -> async { return None })
 
-let mimeTypes =
-  Http.Writers.defaultMimeTypesMap
-    >=> (function | ".json" -> Http.Writers.mkMimeType "text/json" true | _ -> None)
-
-let webConfig = { defaultConfig with mimeTypesMap = mimeTypes }
-
 let serverConfig =
-  { webConfig with
+  { defaultConfig with
       homeFolder = Some __SOURCE_DIRECTORY__
-      logger = Logging.Loggers.saneDefaultsFor Logging.LogLevel.Debug
-      bindings = [ HttpBinding.mk' HTTP  "127.0.0.1" 8083] }
+      // logger = Loggers.saneDefaultsFor LogLevel.Debug
+      bindings = [ HttpBinding.createSimple HTTP  "127.0.0.1" 8083] }
 
 let reloadAppServer () =
   reloadScript() |> Option.iter (fun app -> 
@@ -82,13 +76,15 @@ Target "run" (fun _ ->
   // Start Suave to host it on localhost
   reloadAppServer()
   Async.Start(server)
+
   // Open web browser with the loaded file
   System.Diagnostics.Process.Start("http://localhost:8083") |> ignore
-  
+
   // Watch for changes & reload when app.fsx changes
   use watcher = !! (__SOURCE_DIRECTORY__ @@ "*.*") |> WatchChanges (fun _ -> reloadAppServer())
   traceImportant "Waiting for app.fsx edits. Press any key to stop."
   System.Console.ReadLine() |> ignore
+
 )
 
 RunTargetOrDefault "run"
