@@ -1,6 +1,6 @@
 FSI=fsharpi
 
 dev:
-	$(FSI) build.local.fsx
+	mono packages/FAKE/tools/FAKE.exe --fsiargs -d:MONO build.local.fsx
 
 .PHONY: dev

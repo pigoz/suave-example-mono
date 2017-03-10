@@ -33,7 +33,7 @@ let fsiSession =
   let outStream = new StringWriter(sbOut)
   let errStream = new StringWriter(sbErr)
   let fsiConfig = FsiEvaluationSession.GetDefaultConfiguration()
-  let argv = Array.append [|"/fake/fsi.exe"; "--quiet"; "--noninteractive"; "-d:DO_NOT_START_SERVER"|] [||]
+  let argv = Array.append [|"/usr/local/Cellar/mono/4.8.0.495/lib/mono/fsharp/fsi.exe"; "--quiet"; "--noninteractive"; "-d:DO_NOT_START_SERVER"|] [||]
   FsiEvaluationSession.Create(fsiConfig, argv, inStream, outStream, errStream)
 
 let reportFsiError (e:exn) =
